@@ -6,8 +6,8 @@ import re
 from helpers import config, mysql
 from irc import Dispatcher, connector, cooldown
 
-bot_ripple = bottom.Client(host=config.ripple["irc_ip"], port=6667, ssl=False)
-bot_twitch = bottom.Client(host=config.twitch["irc_ip"], port=6667, ssl=False)
+bot_ripple = bottom.Client(host=config.ripple()["irc_ip"], port=config.ripple()["irc_port"], ssl=False)
+bot_twitch = bottom.Client(host=config.twitch()["irc_ip"], port=config.twitch()["irc_port"], ssl=False)
 
 
 class RippleBot(Dispatcher):
@@ -37,8 +37,8 @@ class TwitchBot(Dispatcher):
 ripple_dispatcher = RippleBot(bot_ripple)
 twitch_dispatcher = TwitchBot(bot_twitch)
 
-connector(bot_ripple, ripple_dispatcher, config.ripple["irc_username"], "", config.ripple["irc_password"])
-connector(bot_twitch, twitch_dispatcher, config.twitch["irc_username"], "", config.twitch["irc_password"])
+connector(bot_ripple, ripple_dispatcher, config.ripple()["irc_username"], "", config.ripple()["irc_password"])
+connector(bot_twitch, twitch_dispatcher, config.twitch()["irc_username"], "", config.twitch()["irc_password"])
 
 bot_ripple.loop.create_task(bot_ripple.connect())
 bot_ripple.loop.create_task(bot_twitch.connect())

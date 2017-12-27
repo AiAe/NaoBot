@@ -1,6 +1,6 @@
 {
   "irc_ip": "",
-  "irc_port": 3666,
+  "irc_port": 6667,
   "irc_username": "",
   "irc_password": ""
 }

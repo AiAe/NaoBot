@@ -13,7 +13,7 @@ bot_twitch = bottom.Client(host=config.twitch()["irc_ip"], port=config.twitch()[
 class RippleBot(Dispatcher):
 
     @cooldown(20)
-    def help(self):
+    def help(self, nick, message, channel):
         print('ha')
 
     def command_patterns(self):
@@ -25,7 +25,7 @@ class RippleBot(Dispatcher):
 class TwitchBot(Dispatcher):
 
     @cooldown(20)
-    def beatmap_request(self):
+    def beatmap_request(self, nick, message, channel):
         print('ha')
 
     def command_patterns(self):

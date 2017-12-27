@@ -33,7 +33,7 @@ async def ripple_websocket():
                 print("got disconnect (not timeout)")
                 return
 
-            print(message)
+            #print(message)
 
 class RippleBot(Dispatcher):
 
@@ -51,11 +51,16 @@ class TwitchBot(Dispatcher):
 
     @cooldown(20)
     def beatmap_request(self, nick, message, channel):
-        print('ha')
+        print('bm request')
+
+    @cooldown(20)
+    def np(self, nick, message, channel):
+        print('np')
 
     def command_patterns(self):
         return (
-            ('^http[s]?:\/\/osu\.ppy\.sh\/(b|s)\/[0-9]+', self.beatmap_request),
+            ('https?:\/\/osu\.ppy\.sh\/([bs])\/([0-9]+)(.*)', self.beatmap_request),
+            ('!np', self.np),
         )
 
 

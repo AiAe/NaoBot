@@ -16,7 +16,6 @@ async def ripple_websocket():
 
     async with websockets.connect('wss://api.ripple.moe/api/v1/ws', timeout=1) as websocket:
 
-        # await websocket.send(ripple_api.webdata())
         await websocket.send('{ "type": "subscribe_scores", "data": [] }')
 
         while True:
@@ -40,12 +39,12 @@ async def ripple_websocket():
                 if str(message["data"]["user_id"]) in players:
 
                     if message["data"]["pp"] > 0:
-
                         beatmap = ripple_api.md5(message["data"]["beatmap_md5"])
 
                         formatter = {
                             "b": beatmap[0]["beatmap_id"],
-                            "song": "{} - {} [{}]".format(beatmap[0]["artist"], beatmap[0]["title"], beatmap[0]["version"]),
+                            "song": "{} - {} [{}]".format(beatmap[0]["artist"], beatmap[0]["title"],
+                                                          beatmap[0]["version"]),
                             "mods": convertmods.ModsRev(message["data"]["mods"]),
                             "accuracy": message["data"]["accuracy"],
                             "rank": message["data"]["rank"],
@@ -55,9 +54,25 @@ async def ripple_websocket():
 
                         username = ripple_api.user(message["data"]["user_id"])["username"].replace(" ", "_")
 
-                        msg = "[https://osu.ppy.sh/b/{b} {song}]{mods} ({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(**formatter)
+                        msg = "[https://osu.ppy.sh/b/{b} {song}]{mods} ({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
+                            **formatter)
 
                         bot_ripple.send("privmsg", target=username, message=msg)
+
+
+async def TwitchJoin():
+    await bot_twitch.wait("client_connect")
+
+    twitch_list = ["ayyayye"]
+
+    '''
+    Add to list joined channels from database so it can skip them...
+    '''
+
+    for channel in twitch_list:
+        bot_twitch.send('JOIN', channel=("#" + channel))
+
+    await asyncio.sleep(30, loop=bot_twitch.loop)
 
 
 class RippleBot(Dispatcher):
@@ -96,6 +111,7 @@ connector(bot_ripple, ripple_dispatcher, config.ripple()["irc_username"], "", co
 connector(bot_twitch, twitch_dispatcher, config.twitch()["irc_username"], "", config.twitch()["irc_password"])
 
 bot_ripple.loop.create_task(ripple_websocket())
+bot_ripple.loop.create_task(TwitchJoin())
 bot_ripple.loop.create_task(bot_ripple.connect())
 bot_ripple.loop.create_task(bot_twitch.connect())
 bot_ripple.loop.run_forever()

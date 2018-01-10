@@ -1,18 +1,13 @@
 import requests, json
 
+
 def user(id=None, name=None):
     try:
-        request = requests.get("https://ripple.moe/api/v1/users/full", params={"name" : name, "id" : id})
+        request = requests.get("https://ripple.moe/api/v1/users/full", params={"name": name, "id": id})
     except requests.exceptions.RequestException as e:
         return
     return json.loads(request.text)
 
-def recent(id=None, limit=1):
-    try:
-        request = requests.get("https://ripple.moe/api/v1/users/scores/recent", params={"id" : id, "l" : limit})
-        return json.loads(request.text)
-    except requests.exceptions.RequestException:
-        return
 
 def isonline(id=None):
     try:
@@ -21,12 +16,14 @@ def isonline(id=None):
     except requests.exceptions.RequestException:
         return
 
+
 def bid(id):
     try:
         request = requests.get("https://storage.ripple.moe/api/b/%s" % id)
         return json.loads(request.text)
     except requests.exceptions.RequestException:
         return
+
 
 def sid(id):
     try:
@@ -35,12 +32,14 @@ def sid(id):
     except requests.exceptions.RequestException:
         return
 
+
 def md5(id):
     try:
-        request = requests.get("https://ripple.moe/api/v1/get_beatmaps", params={"h" : id})
+        request = requests.get("https://ripple.moe/api/v1/get_beatmaps", params={"h": id})
         return json.loads(request.text)
     except requests.exceptions.RequestException as e:
         return
+
 
 def webdata():
     try:
@@ -49,12 +48,6 @@ def webdata():
     except requests.exceptions.RequestException:
         return
 
-def leaderboard(beatmapid="BG", mode=0):
-    try:
-        request = requests.get("https://ripple.moe/api/v1/scores", params={"b" : beatmapid, "mode": mode})
-        return json.loads(request.text)
-    except requests.exceptions.RequestException as e:
-        return
 
 def findLastDiff(js):
     i = 0

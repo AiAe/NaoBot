@@ -1,5 +1,6 @@
 import asyncio
 import bottom
+import json
 import requests
 import re
 import websockets
@@ -20,7 +21,7 @@ async def ripple_websocket():
 
         while True:
             try:
-                message = await asyncio.wait_for(websocket.recv(), timeout=10)
+                string_message = await asyncio.wait_for(websocket.recv(), timeout=10)
             except asyncio.TimeoutError:
                 try:
                     await asyncio.wait_for(websocket.ping(), timeout=10)
@@ -29,6 +30,8 @@ async def ripple_websocket():
                     return
             except websockets.exceptions.ConnectionClosed:
                 return
+
+            message = json.loads(string_message)
 
             if message["type"] == "new_score":
 
@@ -48,9 +51,9 @@ async def ripple_websocket():
                             "stars": ""
                         }
 
-                        username = ripple_api.user()["username"].replace(" ", "_")
+                        username = ripple_api.user(message["data"]["user_id"])["username"].replace(" ", "_")
 
-                        msg = "[https://osu.ppy.sh/b/{b} {song}] {mods} ({accuracy, {rank}}) | {pp}".format(**formatter)
+                        msg = "[https://osu.ppy.sh/b/{b} {song}]{mods} ({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(**formatter)
 
                         bot_ripple.send("privmsg", target=username, message=msg)
 

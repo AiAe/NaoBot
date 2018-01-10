@@ -1,10 +1,9 @@
-import json
 import asyncio
 import bottom
 import requests
 import re
 import websockets
-from helpers import config, mysql, ripple_api
+from helpers import config, mysql, ripple_api, convertmods
 from irc import Dispatcher, connector, cooldown
 
 bot_ripple = bottom.Client(host=config.ripple()["irc_ip"], port=config.ripple()["irc_port"], ssl=False)
@@ -16,7 +15,7 @@ async def ripple_websocket():
 
     async with websockets.connect('wss://api.ripple.moe/api/v1/ws', timeout=1) as websocket:
 
-        #await websocket.send(ripple_api.webdata())
+        # await websocket.send(ripple_api.webdata())
         await websocket.send('{ "type": "subscribe_scores", "data": [] }')
 
         while True:
@@ -27,13 +26,34 @@ async def ripple_websocket():
                     await asyncio.wait_for(websocket.ping(), timeout=10)
                     continue
                 except asyncio.TimeoutError:
-                    print("server did not answer to our ping")
                     return
             except websockets.exceptions.ConnectionClosed:
-                print("got disconnect (not timeout)")
                 return
 
-            #print(message)
+            if message["type"] == "new_score":
+
+                if message["data"]["user_id"] == 2185:
+
+                    if message["data"]["pp"] > 0:
+
+                        beatmap = ripple_api.md5(message["data"]["beatmap_md5"])
+
+                        formatter = {
+                            "b": beatmap[0]["beatmap_id"],
+                            "song": "{} - {} [{}]".format(beatmap[0]["artist"], beatmap[0]["title"], beatmap[0]["version"]),
+                            "mods": convertmods.ModsRev(message["data"]["mods"]),
+                            "accuracy": message["data"]["accuracy"],
+                            "rank": message["data"]["rank"],
+                            "pp": message["data"]["pp"],
+                            "stars": ""
+                        }
+
+                        username = ripple_api.user()["username"].replace(" ", "_")
+
+                        msg = "[https://osu.ppy.sh/b/{b} {song}] {mods} ({accuracy, {rank}}) | {pp}".format(**formatter)
+
+                        bot_ripple.send("privmsg", target=username, message=msg)
+
 
 class RippleBot(Dispatcher):
 

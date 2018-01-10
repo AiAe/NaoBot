@@ -35,7 +35,9 @@ async def ripple_websocket():
 
             if message["type"] == "new_score":
 
-                if message["data"]["user_id"] == 2185:
+                players = str(ripple_api.webdata())
+
+                if str(message["data"]["user_id"]) in players:
 
                     if message["data"]["pp"] > 0:
 

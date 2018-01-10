@@ -14,9 +14,9 @@ bot_twitch = bottom.Client(host=config.twitch()["irc_ip"], port=config.twitch()[
 async def ripple_websocket():
     await bot_ripple.wait("client_connect")
 
-    async with websockets.connect('wss://api.ripple.moe/api/v1/ws', timeout=1) as websocket:
+    async with websockets.connect("wss://api.ripple.moe/api/v1/ws", timeout=1) as websocket:
 
-        await websocket.send('{ "type": "subscribe_scores", "data": [] }')
+        await websocket.send("{ 'type': 'subscribe_scores', 'data': [] }")
 
         while True:
             try:
@@ -81,7 +81,7 @@ async def TwitchJoin():
     '''
 
     for channel in twitch_list:
-        bot_twitch.send('JOIN', channel=("#" + channel))
+        bot_twitch.send("JOIN", channel=("#" + channel))
 
     await asyncio.sleep(30, loop=bot_twitch.loop)
 
@@ -94,7 +94,7 @@ class RippleBot(Dispatcher):
 
     def command_patterns(self):
         return (
-            ('!help', self.help),
+            ("!help", self.help),
         )
 
 
@@ -102,16 +102,16 @@ class TwitchBot(Dispatcher):
 
     @cooldown(20)
     def beatmap_request(self, nick, message, channel):
-        print('bm request')
+        print("bm request")
 
     @cooldown(20)
     def np(self, nick, message, channel):
-        print('np')
+        print("np")
 
     def command_patterns(self):
         return (
-            ('https?:\/\/osu\.ppy\.sh\/([bs])\/([0-9]+)(.*)', self.beatmap_request),
-            ('!np', self.np),
+            ("https?:\/\/osu\.ppy\.sh\/([bs])\/([0-9]+)(.*)", self.beatmap_request),
+            ("!np", self.np),
         )
 
 

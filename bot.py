@@ -40,6 +40,16 @@ async def ripple_websocket():
 
                     if message["data"]["pp"] > 0:
                         beatmap = ripple_api.md5(message["data"]["beatmap_md5"])
+                        play_mode = message["data"]["play_mode"]
+
+                        if play_mode == 1:
+                            mode = " <taiko> "
+                        elif play_mode == 2:
+                            mode = " <ctb> "
+                        elif play_mode == 3:
+                            mode = " <mania> "
+                        else:
+                            mode = ""
 
                         formatter = {
                             "b": beatmap[0]["beatmap_id"],
@@ -49,12 +59,13 @@ async def ripple_websocket():
                             "accuracy": message["data"]["accuracy"],
                             "rank": message["data"]["rank"],
                             "pp": message["data"]["pp"],
-                            "stars": ""
+                            "stars": "",
+                            "mode": mode
                         }
 
                         username = ripple_api.user(message["data"]["user_id"])["username"].replace(" ", "_")
 
-                        msg = "[https://osu.ppy.sh/b/{b} {song}]{mods} ({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
+                        msg = "[https://osu.ppy.sh/b/{b} {song}]{mods}{mode}({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
                             **formatter)
 
                         bot_ripple.send("privmsg", target=username, message=msg)

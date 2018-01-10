@@ -105,3 +105,4 @@ ENV/
 *.json
 *.json
 *.json
+debug.py

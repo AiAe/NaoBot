@@ -2,5 +2,5 @@
   "irc_ip": "irc.chat.twitch.tv",
   "irc_port": 6667,
   "irc_username": "ayyayyebot",
-  "irc_password": "oauth:x7ut5ldppsvb35pt6j7bjf6j93tnj1"
+  "irc_password": "oauth:"
 }

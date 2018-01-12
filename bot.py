@@ -16,7 +16,7 @@ async def ripple_websocket():
 
     async with websockets.connect("wss://api.ripple.moe/api/v1/ws", timeout=1) as websocket:
 
-        await websocket.send("{ 'type': 'subscribe_scores', 'data': [] }")
+        await websocket.send('{"type": "subscribe_scores", "data": []}')
 
         while True:
             try:
@@ -31,13 +31,14 @@ async def ripple_websocket():
                 return
 
             message = json.loads(string_message)
-
+            print(string_message)
             if message["type"] == "new_score":
-
-                players = str(ripple_api.webdata())
+                print('got score')
+                #players = str(ripple_api.webdata())
+                players = [2185]
 
                 if str(message["data"]["user_id"]) in players:
-
+                    print('found user')
                     if message["data"]["pp"] > 0:
                         beatmap = ripple_api.md5(message["data"]["beatmap_md5"])
                         play_mode = message["data"]["play_mode"]
@@ -68,7 +69,11 @@ async def ripple_websocket():
                         msg = "[https://osu.ppy.sh/b/{b} {song}]{mods}{mode}({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
                             **formatter)
 
+                        msg_twitch = "{song}{mods}{mode}({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
+                            **formatter)
+
                         bot_ripple.send("privmsg", target=username, message=msg)
+                        bot_twitch.send("privmsg", target="#ayyayye", message=msg_twitch)
 
 
 async def TwitchJoin():

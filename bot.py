@@ -1,10 +1,9 @@
 import asyncio
 import bottom
 import json
-import requests
 import re
 import websockets
-from helpers import config, mysql, ripple_api, convertmods
+from helpers import config, ripple_api, convertmods
 from irc import Dispatcher, connector, cooldown
 
 bot_ripple = bottom.Client(host=config.ripple()["irc_ip"], port=config.ripple()["irc_port"], ssl=False)

@@ -1,9 +1,8 @@
 import asyncio
 import bottom
 import json
-import re
 import websockets
-from helpers import config, ripple_api, convertmods
+from helpers import config, ripple_api, convertmods, naoapi, generate
 from irc import Dispatcher, connector, cooldown
 
 bot_ripple = bottom.Client(host=config.ripple()["irc_ip"], port=config.ripple()["irc_port"], ssl=False)
@@ -30,14 +29,12 @@ async def ripple_websocket():
                 return
 
             message = json.loads(string_message)
-            print(string_message)
+
             if message["type"] == "new_score":
-                print('got score')
-                #players = str(ripple_api.webdata())
+                # players = str(ripple_api.webdata())
                 players = [2185]
 
                 if str(message["data"]["user_id"]) in players:
-                    print('found user')
                     if message["data"]["pp"] > 0:
                         beatmap = ripple_api.md5(message["data"]["beatmap_md5"])
                         play_mode = message["data"]["play_mode"]
@@ -91,19 +88,55 @@ async def TwitchJoin():
 
 
 class RippleBot(Dispatcher):
-
     @cooldown(20)
     def help(self, nick, message, channel):
-        self.respond(message="[https://bot.aiae.ovh/ To start using me click here to login]", nick=nick)
+        self.respond(message="To start using me write !signup", nick=nick)
+
+    @cooldown(20)
+    def signup(self, nick, message, channel):
+        user = ripple_api.user(name=nick)
+        code = generate.code(6)
+        insert_user = naoapi.insert_user(user["id"], code)
+
+        if insert_user["code"] == "1":
+            self.respond(message="You logged in successfully!", nick=nick)
+            self.respond(message="To check list with commands write !commands", nick=nick)
+        else:
+            self.respond(message="You have account, or something went wrong!", nick=nick)
+
+    @cooldown(20)
+    def signup_twitch(self, nick, message, channel):
+        user = ripple_api.user(name=nick)
+        get_user = naoapi.get_user(user["id"])
+        if get_user["code"] == "1" and not get_user["twitch_username"]:
+            twitch_url = "https://api.twitch.tv/kraken/oauth2/authorize?" \
+                         "response_type=code&client_id={}&redirect_uri={}".format(config.twitch()["twitch_client"],
+                                                                                  config.twitch()["twitch_redirect"])
+            self.respond(message="[{} Click here to connect with Twitch]".format(twitch_url), nick=nick)
+
+    @cooldown(20)
+    def commands(self, nick, message, channel):
+        self.respond(message="Command list soon", nick=nick)
+
+    def shutdown(self, nick, message, channel):
+        user = ripple_api.user(name=nick)
+        get_user_full = naoapi.get_user_full(user["id"])
+
+        if get_user_full["group"] == "Admin":
+            self.respond(message="Sayonara", nick=nick)
+            exit()
 
     def command_patterns(self):
         return (
             ("!help", self.help),
+            ("!signup", self.signup),
+            ("!commands", self.commands),
+            ("!twitch", self.signup_twitch),
+            ("!shutdown", self.shutdown),
         )
 
 
 class TwitchBot(Dispatcher):
-
     @cooldown(20)
     def beatmap_request(self, nick, message, channel):
         print("bm request")

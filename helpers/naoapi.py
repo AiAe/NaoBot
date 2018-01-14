@@ -17,7 +17,7 @@ GET user data
 
 
 def api_list(user_id):
-    return requests.get(url + "/api_list", params={"user_id": user_id, "token": token}).json()
+    return requests.get(url + "/full", params={"user_id": user_id, "token": token}).json()
 
 
 def get_user(user_id):

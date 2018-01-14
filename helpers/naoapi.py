@@ -1,7 +1,16 @@
 import requests
+import json
+import os
 
-url = "https://api.aiae.ovh/api"
-token = ""
+try:
+    with open(os.getcwd() + "/api.json", "r") as f:
+        config = json.load(f)
+except FileNotFoundError:
+    with open("/home/ubuntu/NaoBot/api.json", "r") as f:
+        config = json.load(f)
+
+url = config["url"]
+token = config["token"]
 '''
 GET user data
 '''

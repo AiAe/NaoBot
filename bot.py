@@ -95,7 +95,7 @@ class RippleBot(Dispatcher):
     @cooldown(20)
     def signup(self, nick, message, channel):
         user = ripple_api.user(name=nick)
-        code = generate.code(6)
+        code = generate.code(16)
         insert_user = naoapi.insert_user(user["id"], code)
 
         if insert_user["code"] == "1":
@@ -109,10 +109,13 @@ class RippleBot(Dispatcher):
         user = ripple_api.user(name=nick)
         get_user = naoapi.get_user(user["id"])
         if get_user["code"] == "1" and not get_user["twitch_username"]:
+            twitch_client = config.twitch()["twitch_client"]
+            twitch_redirect = config.twitch()["twitch_redirect"]
             twitch_url = "https://api.twitch.tv/kraken/oauth2/authorize?" \
-                         "response_type=code&client_id={}&redirect_uri={}".format(config.twitch()["twitch_client"],
-                                                                                  config.twitch()["twitch_redirect"])
-            self.respond(message="[{} Click here to connect with Twitch]".format(twitch_url), nick=nick)
+                         "response_type=code&client_id={}&redirect_uri={}" \
+                         "&state={}".format(twitch_client, twitch_redirect,
+                                            user["code"])
+            self.respond(message="[{} Click here to connect to Twitch]".format(twitch_url), nick=nick)
 
     @cooldown(20)
     def commands(self, nick, message, channel):

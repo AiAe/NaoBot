@@ -158,7 +158,10 @@ class TwitchBot(Dispatcher):
 
     @cooldown(20)
     def np(self, nick, message, channel):
-        print("np")
+        twitch = channel.split("#")[1]
+        get_np = naoapi.get_tracking(twitch=twitch)
+        msg = "Current map {}".format(get_np["nowplaying"])
+        bot_twitch.send("privmsg", target=channel, message=msg)
 
     def command_patterns(self):
         return (

@@ -1,6 +1,7 @@
 import asyncio
 import bottom
 import json
+import re
 import websockets
 from helpers import config, ripple_api, convertmods, naoapi, generate
 from irc import Dispatcher, connector, cooldown
@@ -69,7 +70,7 @@ async def ripple_websocket():
                             **formatter)
 
                         bot_ripple.send("privmsg", target=username, message=msg)
-                        bot_twitch.send("privmsg", target="#ayyayye", message=msg_twitch)
+                        #bot_twitch.send("privmsg", target="#ayyayye", message=msg_twitch)
 
 
 async def TwitchJoin():
@@ -92,7 +93,7 @@ class RippleBot(Dispatcher):
     def help(self, nick, message, channel):
         self.respond(message="To start using me write !signup", nick=nick)
 
-    @cooldown(20)
+    @cooldown(60)
     def signup(self, nick, message, channel):
         user = ripple_api.user(name=nick)
         code = generate.code(16)
@@ -119,7 +120,17 @@ class RippleBot(Dispatcher):
 
     @cooldown(20)
     def commands(self, nick, message, channel):
-        self.respond(message="Command list soon", nick=nick)
+        self.respond(message="For full list read NaoBot userpage", nick=nick)
+
+    @cooldown(5)
+    def settings(self, nick, message, channel):
+        print(message)
+        clean_message = message.split("!settings")[1]
+        update = re.search("([A-Za-z_]+) ([A-Za-z0-9_.]+)", clean_message)
+        user = ripple_api.user(name=nick)
+        naoapi.update_settings(user["id"], update.group(1), update.group(2))
+
+        self.respond(message="...", nick=nick)
 
     def shutdown(self, nick, message, channel):
         user = ripple_api.user(name=nick)
@@ -135,6 +146,7 @@ class RippleBot(Dispatcher):
             ("!signup", self.signup),
             ("!commands", self.commands),
             ("!twitch", self.signup_twitch),
+            ("!settings ([A-Za-z_]+) ([A-Za-z0-9.]+)", self.settings),
             ("!shutdown", self.shutdown),
         )
 

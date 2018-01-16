@@ -28,8 +28,8 @@ def get_settings(user_id):
     return requests.get(url + "/get_settings", params={"user_id": user_id, "token": token}).json()
 
 
-def get_tracking(user_id):
-    return requests.get(url + "/get_tracking", params={"user_id": user_id, "token": token}).json()
+def get_tracking(user_id=None, twitch=None):
+    return requests.get(url + "/get_tracking", params={"user_id": user_id, "twitch": twitch, "token": token}).json()
 
 
 '''

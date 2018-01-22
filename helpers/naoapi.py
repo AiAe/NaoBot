@@ -16,6 +16,10 @@ GET user data
 '''
 
 
+def get_list():
+    return requests.get(url + "/list", params={"token": token}).json()
+
+
 def get_user_full(user_id):
     return requests.get(url + "/full", params={"user_id": user_id, "token": token}).json()
 

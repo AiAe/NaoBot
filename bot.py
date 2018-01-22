@@ -10,6 +10,14 @@ bot_ripple = bottom.Client(host=config.ripple()["irc_ip"], port=config.ripple()[
 bot_twitch = bottom.Client(host=config.twitch()["irc_ip"], port=config.twitch()["irc_port"], ssl=False)
 
 
+def load_memes():
+    arr = []
+    players = naoapi.get_list()["data"]
+    for player in players:
+        arr.append(player["user_id"])
+    return arr
+
+
 async def ripple_websocket():
     await bot_ripple.wait("client_connect")
 
@@ -32,10 +40,9 @@ async def ripple_websocket():
             message = json.loads(string_message)
 
             if message["type"] == "new_score":
-                # players = str(ripple_api.webdata())
-                players = [2185]
-
-                if str(message["data"]["user_id"]) in players:
+                p = load_memes()
+                if message["data"]["user_id"] in p:
+                    print('player in list')
                     if message["data"]["pp"] > 0:
                         beatmap = ripple_api.md5(message["data"]["beatmap_md5"])
                         play_mode = message["data"]["play_mode"]
@@ -69,8 +76,11 @@ async def ripple_websocket():
                         msg_twitch = "{song}{mods}{mode}({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
                             **formatter)
 
-                        bot_ripple.send("privmsg", target=username, message=msg)
-                        #bot_twitch.send("privmsg", target="#ayyayye", message=msg_twitch)
+                        try:
+                            bot_ripple.send("privmsg", target=username, message=msg)
+                            # bot_twitch.send("privmsg", target="#ayyayye", message=msg_twitch)
+                        except:
+                            print("Something went wrong with sending message.")
 
 
 async def TwitchJoin():
@@ -120,17 +130,16 @@ class RippleBot(Dispatcher):
 
     @cooldown(20)
     def commands(self, nick, message, channel):
-        self.respond(message="For full list read NaoBot userpage", nick=nick)
+        self.respond(message="For full list read [https://ripple.moe/u/9973 NaoBot] user page!", nick=nick)
 
     @cooldown(5)
     def settings(self, nick, message, channel):
-        print(message)
         clean_message = message.split("!settings")[1]
         update = re.search("([A-Za-z_]+) ([A-Za-z0-9_.]+)", clean_message)
         user = ripple_api.user(name=nick)
         naoapi.update_settings(user["id"], update.group(1), update.group(2))
 
-        self.respond(message="...", nick=nick)
+        self.respond(message="{} is changed to {}".format(update.group(1), update.group(2)), nick=nick)
 
     def shutdown(self, nick, message, channel):
         user = ripple_api.user(name=nick)
@@ -154,19 +163,76 @@ class RippleBot(Dispatcher):
 class TwitchBot(Dispatcher):
     @cooldown(20)
     def beatmap_request(self, nick, message, channel):
-        print("bm request")
+        username = nick.split(".")[0]
+        try:
+            groups = re.match("https?:\/\/osu\.ppy\.sh\/([bs])\/([0-9]+)(.*)", message).groups()
+        except:
+            groups = re.match("https?:\/\/ripple\.moe\/([bs])\/([0-9]+)(.*)", message).groups()
+
+        idtype, bid, modsg = groups
+        find_mods = []
+        if modsg:
+            find_mods = re.findall("(HR|DT|NC|FL|HD|EZ|HT)", modsg.upper())
+
+        if idtype == "s":
+            mapinfo = ripple_api.sid(bid)
+        else:
+            b_map = ripple_api.bid(bid)
+            if b_map:
+                mapinfo = ripple_api.sid(b_map["ParentSetID"])
+            else:
+                print('Map not found return link only to player...')
+                msg = "{}: [https://osu.ppy.sh/{}/{}/ Requested map]".format(username, idtype, bid)
+                bot_ripple.send("privmsg", target="Ban_Hammer", message=msg)
+                return
+
+        if idtype == "s":
+            findHardestDifficulty = ripple_api.findLastDiff(mapinfo)
+            beatMapSetId = mapinfo["SetID"]
+            #mode = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["Mode"]
+            version = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["DiffName"]
+            stars = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["DifficultyRating"]
+            bpm = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["BPM"]
+        else:
+            beatMapSetId = b_map["ParentSetID"]
+            #mode = b_map["Mode"]
+            version = b_map["DiffName"]
+            stars = b_map["DifficultyRating"]
+            bpm = b_map["BPM"]
+
+        artist = mapinfo["Artist"]
+        title = mapinfo["Title"]
+
+        formatter = {
+            "sender": username,
+            "beatmapsetid": beatMapSetId,
+            "artist": artist,
+            "title": title,
+            "bpm": bpm,
+            "version": version,
+            "stars": stars,
+            "all_mods": ''.join(find_mods)
+        }
+
+        twitch = channel.split("#")[1]
+        bot_ripple.send("privmsg", target="Ban_Hammer",
+                        message="{sender}: [osu://dl/{beatmapsetid} {artist} - {title} [{version}]] {all_mods} {bpm}BPM {stars:.2f}★".format(
+                            **formatter))
 
     @cooldown(20)
     def np(self, nick, message, channel):
         twitch = channel.split("#")[1]
         get_np = naoapi.get_tracking(twitch=twitch)
-        msg = "Current map {}".format(get_np["nowplaying"])
-        bot_twitch.send("privmsg", target=channel, message=msg)
+        current_map = get_np["nowplaying"]
+        if current_map:
+            msg = "Current map {}".format(get_np["nowplaying"])
+            bot_twitch.send("privmsg", target=channel, message=msg)
 
     def command_patterns(self):
         return (
             ("https?:\/\/osu\.ppy\.sh\/([bs])\/([0-9]+)(.*)", self.beatmap_request),
-            ("!np", self.np),
+            ("https?:\/\/ripple\.moe\/([bs])\/([0-9]+)(.*)", self.beatmap_request),
+            ("!np|np", self.np),
         )
 
 

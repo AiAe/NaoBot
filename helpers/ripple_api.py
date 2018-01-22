@@ -18,19 +18,11 @@ def isonline(id=None):
 
 
 def bid(id):
-    try:
-        request = requests.get("https://storage.ripple.moe/api/b/%s" % id)
-        return json.loads(request.text)
-    except requests.exceptions.RequestException:
-        return
+    return requests.get("https://storage.ripple.moe/api/b/%s" % id).json()
 
 
 def sid(id):
-    try:
-        request = requests.get("https://woostorage.ripple.moe/api/s/%s" % id)
-        return json.loads(request.text)
-    except requests.exceptions.RequestException:
-        return
+    return requests.get("https://storage.ripple.moe/api/s/%s" % id).json()
 
 
 def md5(id):
@@ -38,14 +30,6 @@ def md5(id):
         request = requests.get("https://ripple.moe/api/v1/get_beatmaps", params={"h": id})
         return json.loads(request.text)
     except requests.exceptions.RequestException as e:
-        return
-
-
-def webdata():
-    try:
-        request = requests.get("https://bot.aiae.ovh/api/users/")
-        return request.text
-    except requests.exceptions.RequestException:
         return
 
 

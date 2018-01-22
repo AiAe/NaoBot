@@ -78,7 +78,6 @@ async def ripple_websocket():
 
                         try:
                             bot_ripple.send("privmsg", target=username, message=msg)
-                            # bot_twitch.send("privmsg", target="#ayyayye", message=msg_twitch)
                         except:
                             print("Something went wrong with sending message.")
 
@@ -86,14 +85,10 @@ async def ripple_websocket():
 async def TwitchJoin():
     await bot_twitch.wait("client_connect")
 
-    twitch_list = ["ayyayye"]
-
-    '''
-    Add to list joined channels from database so it can skip them...
-    '''
+    twitch_list = naoapi.get_list_twitch()
 
     for channel in twitch_list:
-        bot_twitch.send("JOIN", channel=("#" + channel))
+        bot_twitch.send("JOIN", channel=("#" + channel["twitch_username"]))
 
     await asyncio.sleep(30, loop=bot_twitch.loop)
 
@@ -189,13 +184,13 @@ class TwitchBot(Dispatcher):
         if idtype == "s":
             findHardestDifficulty = ripple_api.findLastDiff(mapinfo)
             beatMapSetId = mapinfo["SetID"]
-            #mode = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["Mode"]
+            # mode = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["Mode"]
             version = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["DiffName"]
             stars = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["DifficultyRating"]
             bpm = mapinfo["ChildrenBeatmaps"][findHardestDifficulty[0]]["BPM"]
         else:
             beatMapSetId = b_map["ParentSetID"]
-            #mode = b_map["Mode"]
+            # mode = b_map["Mode"]
             version = b_map["DiffName"]
             stars = b_map["DifficultyRating"]
             bpm = b_map["BPM"]
@@ -215,7 +210,10 @@ class TwitchBot(Dispatcher):
         }
 
         twitch = channel.split("#")[1]
-        bot_ripple.send("privmsg", target="Ban_Hammer",
+        find_player = naoapi.get_tracking(twitch=twitch)
+        player = ripple_api.user(id=find_player["user_id"])
+        name = player["username"].replace(" ", "_")
+        bot_ripple.send("privmsg", target=name,
                         message="{sender}: [osu://dl/{beatmapsetid} {artist} - {title} [{version}]] {all_mods} {bpm}BPM {stars:.2f}★".format(
                             **formatter))
 

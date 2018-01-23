@@ -1,14 +1,24 @@
 import json
+import os
+
 
 def ripple():
-    with open("./ripple.json", "r") as f:
-        ripple = json.load(f)
+    try:
+        with open(os.getcwd() + "/ripple.json", "r") as f:
+            cripple = json.load(f)
+    except FileNotFoundError:
+        with open("/home/ubuntu/NaoBot/ripple.json", "r") as f:
+            cripple = json.load(f)
 
-    return ripple
+    return cripple
 
 
 def twitch():
-    with open("./twitch.json", "r") as f:
-        twitch = json.load(f)
+    try:
+        with open(os.getcwd() + "/twitch.json", "r") as f:
+            ctwitch = json.load(f)
+    except FileNotFoundError:
+        with open("/home/ubuntu/NaoBot/twitch.json", "r") as f:
+            ctwitch = json.load(f)
 
-    return twitch
+    return ctwitch

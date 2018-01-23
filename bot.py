@@ -42,7 +42,6 @@ async def ripple_websocket():
             if message["type"] == "new_score":
                 p = load_memes()
                 if message["data"]["user_id"] in p:
-                    print('player in list')
                     if message["data"]["pp"] > 0:
                         beatmap = ripple_api.md5(message["data"]["beatmap_md5"])
                         play_mode = message["data"]["play_mode"]
@@ -73,8 +72,8 @@ async def ripple_websocket():
                         msg = "[https://osu.ppy.sh/b/{b} {song}]{mods}{mode}({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
                             **formatter)
 
-                        msg_twitch = "{song}{mods}{mode}({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
-                            **formatter)
+                        # msg_twitch = "{song}{mods}{mode}({accuracy:.2f}%, {rank}) | {pp:.2f}pp".format(
+                        #     **formatter)
 
                         try:
                             bot_ripple.send("privmsg", target=username, message=msg)
